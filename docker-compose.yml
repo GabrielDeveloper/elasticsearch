@@ -1,0 +1,73 @@
+version: '2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    container_name: elasticsearch
+    ports: 
+      - "9200:9200"
+    environment:
+      - ELASTIC_PASSWORD=123Mudar...        
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - path.data=/usr/share/elasticsearch/data
+      - path.logs=/var/log/elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/log:/var/log/elasticsearch
+      
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.3.2
+    container_name: logstash
+    environment:
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD="123Mudar..."
+      - NODE_NAME=my-logstash
+      - XPACK_MONITORING_ENABLED=true
+      - PATH_CONFIG=/usr/share/logstash/my-confs
+      - PATH_LOGS=/var/log/logstash
+    volumes:
+      - ./logstash/conf:/usr/share/logstash/my-confs
+      - ./logstash/log:/var/log/logstash
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.3.2
+    container_name: kibana
+    ports: 
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD="123Mudar..."
+      - SERVER_NAME=my-kibana
+      - XPACK_SECURITY_ENABLED=true
+      - PATH_DATA=/usr/share/kibana/data
+      - LOGGING_DEST=/var/log/kibana/kibana.log
+    volumes:
+      - ./kibana/data:/usr/share/kibana/data
+      - ./kibana/log:/var/log/kibana
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+  nginx:
+    image: nginx
+    container_name: nginx
+    ports: 
+      - "8889:80"
+    volumes:
+      - ./nginx:/etc/nginx
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch

@@ -1,0 +1,58 @@
+# GENERAL SETTINS
+#
+# To work distributed like a unique cluster, all nodes must have the same cluster name.
+# Node name has set to be dynamic by hostname
+
+cluster.name: "mundipagg-elastic"
+node.name:       ${HOSTNAME}
+node.attr.zone:  azure-east-us
+
+reindex.remote.whitelist: "milleniumfalcon.mundipagg.com:80"
+
+# NODE TYPE
+#    _____________________________________
+#   | node type | node.data | node.master |
+#   |-----------|-----------|-------------|
+#   | client    | false     | false       |
+#   | master    | false     | true        |
+#   | data      | true      | false       |
+#    ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
+
+node.data: true
+node.master: true
+
+# PATHS
+# Paths to persist data and los
+# Can be set to array of directories using ["/dir1", "/dir2"]
+
+path.data: /data01
+path.logs: /var/log/elasticsearch
+
+# MASTER CONFIG
+# Set minimun 2 nodes online to work to avoid split brains
+
+discovery.zen.minimum_master_nodes: 1
+
+# NETWORK
+# Bind port to http request (9200) and communication between nodes (9300)
+# Prefer set only master nodes hostname or IP to join a cluster
+# Bind host and publish to 
+
+network.host: _site_
+http.port: 9200
+transport.tcp.port: 9300
+discovery.zen.ping.unicast.hosts: ["es-master01", "es-master02", "es-master03"]
+
+# MEMORY
+# Disable swap to prevent memory from being swapped out
+bootstrap.memory_lock: true
+
+# SECURITY
+# Disable indice delete using _all or with wildcards, requires explicit names
+action.destructive_requires_name: true
+
+# SCRIPTS
+# Allow scripts for search and update
+
+script.allowed_types: inline
+script.allowed_contexts: search, update
